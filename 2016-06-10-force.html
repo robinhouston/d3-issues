@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Force layout issue (D3 v4.0.0 alpha.45)</title>
+		<script src="https://d3js.org/d3.v4.0.0-alpha.45.js"></script>
+		<style>
+		* { box-sizing: border-box; }
+		html, form { height: 100%; }
+		body { margin: 0; padding: 0 8px; height: calc(100% - 8px); }
+		div { margin: 8px; }
+		buttom { margin: 0 16px; }
+		textarea { width: 100%; height: calc(100% - 35px); font-family: monospace; }
+		</style>
+	</head>
+	<body>
+		<form onsubmit="return false">
+			<div>
+				<button id="stop-button">Stop</button>
+				<button id="transition-and-stop-button">Transition &amp; stop</button>
+				<button id="restart-button">Restart</button>
+				<button id="reset-button">Reset alpha</button>
+			</div>
+			<textarea></textarea>
+		</form>
+		<script>
+		var textarea = document.querySelector("textarea");
+
+		function log() {
+			var text = Array.prototype.join.call(arguments, " ");
+			textarea.appendChild(document.createTextNode(text + "\n"));
+			textarea.scrollTop = textarea.scrollHeight;
+		}
+
+		var nodes = d3.range(100).map(function(i) { return {index: i} });
+
+		var layout = d3.forceSimulation(nodes)
+			.on("tick", function() { log("tick", this.alpha()); });
+
+		function stopLayout()       { layout.stop();    log("Stopped layout");          }
+		function restartLayout()    { layout.restart(); log("Restarted layout");        }
+		function resetLayoutAlpha() { layout.alpha(1);  log("Reset layout alpha to 1"); }
+
+		function createTransitionAndStopLayout() {
+			// It seems that creating a transition while the layout is running
+			// and then stopping the layout prevents it from being restarted.
+			d3.transition();
+			log("Created transition");
+
+			stopLayout();
+		}
+
+		d3.select("#stop-button").on("click", stopLayout);
+		d3.select("#restart-button").on("click", restartLayout);
+		d3.select("#reset-button").on("click", resetLayoutAlpha);
+
+		d3.select("#transition-and-stop-button").on("click", createTransitionAndStopLayout);
+		</script>
+	</body>
+</html>
